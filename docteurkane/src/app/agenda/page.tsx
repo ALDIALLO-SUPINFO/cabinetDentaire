@@ -7,7 +7,6 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { supabase } from '@/lib/supabase';
-import { Appointment, Patient } from '@/types';
 import { toast } from 'react-hot-toast';
 import { FiPlus, FiFilter, FiCalendar, FiClock, FiUser } from 'react-icons/fi';
 import { format, addDays } from 'date-fns';
@@ -43,7 +42,7 @@ export default function AgendaPage() {
 
   useEffect(() => {
     fetchAppointments();
-  }, []);
+  }, [fetchAppointments]);
 
   useEffect(() => {
     // Mettre à jour la vue du calendrier

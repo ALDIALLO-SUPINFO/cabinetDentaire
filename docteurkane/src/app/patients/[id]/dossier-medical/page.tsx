@@ -44,16 +44,10 @@ export default function MedicalRecord({ params }: { params: { id: string } }) {
   const [activeTab, setActiveTab] = useState('schema');
   const [loading, setLoading] = useState(true);
   const [patient, setPatient] = useState<any>(null);
-  const [dentalSchema, setDentalSchema] = useState<DentalSchema[]>([]);
-  const [treatments, setTreatments] = useState<Treatment[]>([]);
-  const [treatmentPlan, setTreatmentPlan] = useState<TreatmentPlan[]>([]);
-  const [clinicalNotes, setClinicalNotes] = useState<ClinicalNote[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [medicalImages, setMedicalImages] = useState<MedicalImage[]>([]);
 
   useEffect(() => {
     fetchPatientData();
-  }, [params.id]);
+  }, [params.id, fetchPatientData]);
 
   const fetchPatientData = async () => {
     try {
@@ -90,13 +84,6 @@ export default function MedicalRecord({ params }: { params: { id: string } }) {
       if (clinicalNotesRes.error) throw clinicalNotesRes.error;
       if (paymentsRes.error) throw paymentsRes.error;
       if (medicalImagesRes.error) throw medicalImagesRes.error;
-
-      setDentalSchema(dentalSchemaRes.data || []);
-      setTreatments(treatmentsRes.data || []);
-      setTreatmentPlan(treatmentPlanRes.data || []);
-      setClinicalNotes(clinicalNotesRes.data || []);
-      setPayments(paymentsRes.data || []);
-      setMedicalImages(medicalImagesRes.data || []);
 
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);

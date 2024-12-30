@@ -6,7 +6,6 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 import { FiCalendar, FiClock, FiUser, FiFileText } from 'react-icons/fi';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 
 export default function NewAppointment() {
   const router = useRouter();
