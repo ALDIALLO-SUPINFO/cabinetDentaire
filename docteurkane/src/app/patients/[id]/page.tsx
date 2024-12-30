@@ -8,7 +8,14 @@ import { Patient } from '@/types';
 import { toast } from 'react-hot-toast';
 import { FiEdit2, FiCalendar, FiPhone, FiMail, FiMapPin, FiFileText } from 'react-icons/fi';
 
-export default function PatientDetails({ params }: { params: { id: string } }) {
+interface PageProps {
+  params: {
+    id: string;
+  };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+export default function PatientPage({ params }: PageProps) {
   const router = useRouter();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
