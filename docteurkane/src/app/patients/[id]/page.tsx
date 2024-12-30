@@ -1,14 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
-import { Patient } from '@/types';
-import { toast } from 'react-hot-toast';
 import { FiEdit2, FiCalendar, FiPhone, FiMail, FiMapPin, FiFileText } from 'react-icons/fi';
 import { format } from 'date-fns';
-import { Link } from 'next/link';
+import Link from 'next/link';
 
 interface Patient {
   id: string;
