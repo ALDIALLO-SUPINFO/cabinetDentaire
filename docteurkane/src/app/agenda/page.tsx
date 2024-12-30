@@ -49,6 +49,7 @@ export default function AgendaPage() {
     start: new Date(),
     end: addDays(new Date(), 1)
   });
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const fetchAppointments = useCallback(async () => {
     try {
@@ -140,10 +141,40 @@ export default function AgendaPage() {
     }
   };
 
-  const handleEventClick = (info: any) => {
+  const handleEventClick = (info: { event: EventType }) => {
     setSelectedEvent(info.event);
     setShowEventModal(true);
   };
+
+  const handleDateClick = (info: { date: Date }) => {
+    router.push(`/rendez-vous/nouveau?date=${format(info.date, "yyyy-MM-dd'T'HH:mm")}`);
+  };
+
+  const handleRangeChange = useCallback((info: { 
+    start: Date; 
+    end: Date; 
+    view: { 
+      type: string;
+      calendar: {
+        currentData: {
+          currentViewType: string;
+        };
+      };
+    }; 
+  }) => {
+    // Ne mettre à jour que si les dates sont différentes
+    if (
+      isInitialLoad || 
+      visibleRange.start.getTime() !== info.start.getTime() || 
+      visibleRange.end.getTime() !== info.end.getTime()
+    ) {
+      setVisibleRange({
+        start: info.start,
+        end: info.end
+      });
+      setIsInitialLoad(false);
+    }
+  }, [visibleRange, isInitialLoad]);
 
   const handleEventDrop = async (info: any) => {
     try {
@@ -312,6 +343,8 @@ export default function AgendaPage() {
               eventDrop={handleEventDrop}
               eventResize={handleEventResize}
               eventClick={handleEventClick}
+              dateClick={handleDateClick}
+              datesSet={handleRangeChange}
               nowIndicator={true}
               scrollTime={new Date().getHours() + ":00:00"}
               expandRows={true}

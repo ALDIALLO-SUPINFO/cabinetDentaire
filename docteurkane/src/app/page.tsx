@@ -78,7 +78,7 @@ export default function Home() {
             Bienvenue dans votre cabinet
           </h1>
           <p className="text-xl text-gray-600">
-            Que souhaitez-vous faire aujourd'hui ?
+            Que souhaitez-vous faire aujourd&apos;hui ?
           </p>
         </motion.div>
 
