@@ -7,6 +7,20 @@ import { supabase } from '@/lib/supabase';
 import { Patient } from '@/types';
 import { toast } from 'react-hot-toast';
 import { FiEdit2, FiCalendar, FiPhone, FiMail, FiMapPin, FiFileText } from 'react-icons/fi';
+import { format } from 'date-fns';
+import { Link } from 'next/link';
+
+interface Patient {
+  id: string;
+  nom: string;
+  prenom: string;
+  date_naissance?: string;
+  email?: string;
+  telephone?: string;
+  adresse?: string;
+  numero_secu?: string;
+  created_at: string;
+}
 
 interface PageProps {
   params: {
@@ -15,210 +29,151 @@ interface PageProps {
   searchParams?: { [key: string]: string | string[] | undefined };
 }
 
-export default function PatientPage({ params }: PageProps) {
-  const router = useRouter();
-  const [patient, setPatient] = useState<Patient | null>(null);
-  const [loading, setLoading] = useState(true);
+export default async function PatientPage({ params }: PageProps) {
+  const { data: patient, error } = await supabase
+    .from('patients')
+    .select('*')
+    .eq('id', params.id)
+    .single();
 
-  useEffect(() => {
-    async function fetchPatient() {
-      try {
-        const { data, error } = await supabase
-          .from('patients')
-          .select('*')
-          .eq('id', params.id)
-          .single();
-
-        if (error) throw error;
-        setPatient(data);
-      } catch (error) {
-        console.error('Erreur lors du chargement du patient:', error);
-        toast.error('Impossible de charger les informations du patient');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchPatient();
-  }, [params.id]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
+  if (error) {
+    console.error('Erreur lors du chargement du patient:', error);
+    return <div>Impossible de charger les données du patient</div>;
   }
 
   if (!patient) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8">
-        <div className="max-w-4xl mx-auto bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Patient non trouvé</h1>
-          <button
-            onClick={() => router.push('/patients')}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            Retour à la liste
-          </button>
-        </div>
-      </div>
-    );
+    return <div>Patient non trouvé</div>;
   }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-8 mb-6"
-        >
-          <div className="flex justify-between items-start mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">
-              {patient.prenom} {patient.nom}
-            </h1>
-            <button
-              onClick={() => router.push(`/patients/${params.id}/edit`)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {patient.prenom} {patient.nom}
+          </h1>
+          <div className="flex space-x-4">
+            <Link
+              href={`/patients/${patient.id}/edit`}
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              <FiEdit2 className="w-4 h-4" />
+              <FiEdit2 className="mr-2" />
               Modifier
-            </button>
+            </Link>
+            <Link
+              href={`/rendez-vous/nouveau?patient=${patient.id}`}
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+              <FiCalendar className="mr-2" />
+              Nouveau RDV
+            </Link>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Informations personnelles */}
-            <motion.section
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-4"
-            >
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Informations personnelles</h2>
-              
-              <div className="flex items-center gap-3 text-gray-600">
-                <FiCalendar className="w-5 h-5 text-blue-500" />
-                <span>Né(e) le {formatDate(patient.date_naissance)}</span>
-              </div>
-
-              {patient.telephone && (
-                <div className="flex items-center gap-3 text-gray-600">
-                  <FiPhone className="w-5 h-5 text-blue-500" />
-                  <a href={`tel:${patient.telephone}`} className="hover:text-blue-500">
-                    {patient.telephone}
-                  </a>
-                </div>
-              )}
-
-              {patient.email && (
-                <div className="flex items-center gap-3 text-gray-600">
-                  <FiMail className="w-5 h-5 text-blue-500" />
-                  <a href={`mailto:${patient.email}`} className="hover:text-blue-500">
-                    {patient.email}
-                  </a>
-                </div>
-              )}
-
-              {patient.adresse && (
-                <div className="flex items-center gap-3 text-gray-600">
-                  <FiMapPin className="w-5 h-5 text-blue-500" />
-                  <span>{patient.adresse}</span>
-                </div>
-              )}
-
-              {patient.numero_secu && (
-                <div className="flex items-center gap-3 text-gray-600">
-                  <FiFileText className="w-5 h-5 text-blue-500" />
-                  <span>N° Sécu: {patient.numero_secu}</span>
-                </div>
-              )}
-            </motion.section>
-
-            {/* Informations médicales */}
-            <motion.section
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-4"
-            >
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Informations médicales</h2>
-              
-              {patient.antecedents && (
-                <div className="mb-4">
-                  <h3 className="font-medium text-gray-700 mb-2">Antécédents médicaux</h3>
-                  <p className="text-gray-600 bg-gray-50 rounded-lg p-3">{patient.antecedents}</p>
-                </div>
-              )}
-
-              {patient.allergies && (
-                <div className="mb-4">
-                  <h3 className="font-medium text-gray-700 mb-2">Allergies</h3>
-                  <p className="text-gray-600 bg-gray-50 rounded-lg p-3">{patient.allergies}</p>
-                </div>
-              )}
-
-              {patient.traitements_actuels && (
-                <div className="mb-4">
-                  <h3 className="font-medium text-gray-700 mb-2">Traitements actuels</h3>
-                  <p className="text-gray-600 bg-gray-50 rounded-lg p-3">{patient.traitements_actuels}</p>
-                </div>
-              )}
-            </motion.section>
-          </div>
-
-          {/* Assurance et Mutuelle */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 pt-8 border-t border-gray-200"
-          >
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Assurance & Mutuelle</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {patient.assurance && (
-                <div>
-                  <h3 className="font-medium text-gray-700 mb-2">Assurance</h3>
-                  <p className="text-gray-600 bg-gray-50 rounded-lg p-3">{patient.assurance}</p>
-                </div>
-              )}
-
-              {patient.mutuelle && (
-                <div>
-                  <h3 className="font-medium text-gray-700 mb-2">Mutuelle</h3>
-                  <p className="text-gray-600 bg-gray-50 rounded-lg p-3">{patient.mutuelle}</p>
-                </div>
-              )}
-            </div>
-          </motion.section>
-
-          {patient.notes && (
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-8 pt-8 border-t border-gray-200"
-            >
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Notes</h2>
-              <p className="text-gray-600 bg-gray-50 rounded-lg p-4">{patient.notes}</p>
-            </motion.section>
-          )}
-        </motion.div>
-
-        <div className="flex justify-between">
-          <button
-            onClick={() => router.push('/patients')}
-            className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            ← Retour à la liste
-          </button>
         </div>
-      </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div className="px-4 py-5 sm:px-6">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">
+                Informations personnelles
+              </h3>
+            </div>
+            <div className="border-t border-gray-200">
+              <dl>
+                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-500">Date de naissance</dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {patient.date_naissance ? format(new Date(patient.date_naissance), 'dd/MM/yyyy') : 'Non renseignée'}
+                  </dd>
+                </div>
+                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-500">
+                    <div className="flex items-center">
+                      <FiPhone className="mr-2" />
+                      Téléphone
+                    </div>
+                  </dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {patient.telephone || 'Non renseigné'}
+                  </dd>
+                </div>
+                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-500">
+                    <div className="flex items-center">
+                      <FiMail className="mr-2" />
+                      Email
+                    </div>
+                  </dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {patient.email || 'Non renseigné'}
+                  </dd>
+                </div>
+                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-500">
+                    <div className="flex items-center">
+                      <FiMapPin className="mr-2" />
+                      Adresse
+                    </div>
+                  </dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {patient.adresse || 'Non renseignée'}
+                  </dd>
+                </div>
+                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-500">
+                    <div className="flex items-center">
+                      <FiFileText className="mr-2" />
+                      Numéro d&apos;assurance sociale
+                    </div>
+                  </dt>
+                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                    {patient.numero_secu || 'Non renseigné'}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+              <div className="px-4 py-5 sm:px-6">
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  Dossier médical
+                </h3>
+              </div>
+              <div className="border-t border-gray-200 px-4 py-5">
+                <Link
+                  href={`/patients/${patient.id}/dossier-medical`}
+                  className="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  <FiFileText className="mr-2" />
+                  Voir le dossier médical
+                </Link>
+              </div>
+            </div>
+
+            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+              <div className="px-4 py-5 sm:px-6">
+                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                  Rendez-vous
+                </h3>
+              </div>
+              <div className="border-t border-gray-200 px-4 py-5">
+                <Link
+                  href={`/rendez-vous?patient=${patient.id}`}
+                  className="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  <FiCalendar className="mr-2" />
+                  Voir les rendez-vous
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }
