@@ -14,12 +14,10 @@ interface PatientData {
   created_at: string;
 }
 
-interface PageProps {
-  params: {
-    id: string;
-  };
-  searchParams?: { [key: string]: string | string[] | undefined };
-}
+type PageProps = {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+};
 
 class PatientError extends Error {
   constructor(message: string, public cause?: PostgrestError) {
@@ -28,7 +26,7 @@ class PatientError extends Error {
   }
 }
 
-async function getPatientData(id: string) {
+async function getPatientData(id: string): Promise<PatientData | null> {
   const { data, error } = await supabase
     .from('patients')
     .select('*')
@@ -43,7 +41,7 @@ async function getPatientData(id: string) {
 }
 
 export default async function PatientPage({ params }: PageProps) {
-  let patient: PatientData;
+  let patient: PatientData | null;
   
   try {
     patient = await getPatientData(params.id);
