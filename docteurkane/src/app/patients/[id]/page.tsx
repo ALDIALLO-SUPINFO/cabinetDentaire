@@ -1,12 +1,6 @@
-'use client';
-
-import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
-import { FiEdit2, FiCalendar, FiPhone, FiMail, FiMapPin, FiFileText } from 'react-icons/fi';
-import { format } from 'date-fns';
-import Link from 'next/link';
 
-interface Patient {
+interface PatientData {
   id: string;
   nom: string;
   prenom: string;
@@ -25,15 +19,26 @@ interface PageProps {
   searchParams?: { [key: string]: string | string[] | undefined };
 }
 
-export default async function PatientPage({ params }: PageProps) {
-  const { data: patient, error } = await supabase
+async function getPatientData(id: string) {
+  const { data, error } = await supabase
     .from('patients')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (error) {
-    console.error('Erreur lors du chargement du patient:', error);
+    throw new Error('Impossible de charger les données du patient');
+  }
+
+  return data;
+}
+
+export default async function PatientPage({ params }: PageProps) {
+  let patient: PatientData;
+  
+  try {
+    patient = await getPatientData(params.id);
+  } catch (error) {
     return <div>Impossible de charger les données du patient</div>;
   }
 
@@ -41,8 +46,19 @@ export default async function PatientPage({ params }: PageProps) {
     return <div>Patient non trouvé</div>;
   }
 
+  return <PatientDetails patient={patient} />;
+}
+
+'use client';
+
+import { motion } from 'framer-motion';
+import { FiEdit2, FiCalendar, FiPhone, FiMail, FiMapPin, FiFileText } from 'react-icons/fi';
+import { format } from 'date-fns';
+import Link from 'next/link';
+
+function PatientDetails({ patient }: { patient: PatientData }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8">
+    <div className="container mx-auto px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -54,7 +70,7 @@ export default async function PatientPage({ params }: PageProps) {
           </h1>
           <div className="flex space-x-4">
             <Link
-              href={`/patients/${patient.id}/edit`}
+              href={`/patients/${patient.id}/modifier`}
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               <FiEdit2 className="mr-2" />
