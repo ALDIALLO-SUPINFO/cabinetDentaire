@@ -14,11 +14,6 @@ interface PatientData {
   created_at: string;
 }
 
-type PageProps = {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
-
 class PatientError extends Error {
   constructor(message: string, public cause?: PostgrestError) {
     super(message);
@@ -40,7 +35,11 @@ async function getPatientData(id: string): Promise<PatientData | null> {
   return data;
 }
 
-export default async function PatientPage({ params }: PageProps) {
+interface Props {
+  params: { id: string };
+}
+
+export default async function PatientPage({ params }: Props) {
   let patient: PatientData | null;
   
   try {
