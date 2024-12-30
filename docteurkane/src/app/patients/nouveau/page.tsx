@@ -228,7 +228,7 @@ export default function NewPatient() {
             className="space-y-6"
           >
             <div>
-              <OptionalLabel>Numéro d&#39;assurance sociale</OptionalLabel>
+              <OptionalLabel>Numéro d&apos;assurance sociale</OptionalLabel>
               <input
                 type="text"
                 name="numero_secu"
@@ -333,7 +333,7 @@ export default function NewPatient() {
 
           <div className="mb-8">
             <p className="text-sm text-gray-500 mb-4">
-              Les champs marqués d'un <span className="text-red-500">*</span> sont obligatoires
+              Les champs marqués d&apos;un <span className="text-red-500">*</span> sont obligatoires
             </p>
             <div className="flex justify-between mb-2">
               {steps.map((step, index) => (
