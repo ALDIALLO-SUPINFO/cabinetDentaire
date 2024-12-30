@@ -28,7 +28,7 @@ async function getPatientData(id: string) {
     .single();
 
   if (error) {
-    throw new Error('Impossible de charger les données du patient');
+    throw new Error(`Impossible de charger les données du patient: ${error.message}`);
   }
 
   return data;
@@ -39,8 +39,8 @@ export default async function PatientPage({ params }: PageProps) {
   
   try {
     patient = await getPatientData(params.id);
-  } catch (error) {
-    return <div>Impossible de charger les données du patient</div>;
+  } catch (error: any) {
+    return <div>Erreur: {error.message}</div>;
   }
 
   if (!patient) {
