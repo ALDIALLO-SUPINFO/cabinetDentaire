@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -8,7 +8,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
-import { FiPlus, FiFilter, FiCalendar, FiClock, FiUser } from 'react-icons/fi';
+import { FiPlus, FiCalendar, FiClock, FiUser } from 'react-icons/fi';
 import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -39,6 +39,38 @@ export default function AgendaPage() {
     start: new Date(),
     end: addDays(new Date(), 1)
   });
+
+  const fetchAppointments = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+          *,
+          patient:patients (
+            id,
+            nom,
+            prenom
+          )
+        `);
+
+      if (error) throw error;
+
+      const formattedEvents = data.map((appointment: any) => ({
+        id: appointment.id,
+        title: `${appointment.patient.nom} ${appointment.patient.prenom}`,
+        start: appointment.date_heure,
+        end: addDays(new Date(appointment.date_heure), 1),
+        extendedProps: {
+          ...appointment
+        }
+      }));
+
+      setEvents(formattedEvents);
+    } catch (error) {
+      console.error('Erreur lors du chargement des rendez-vous:', error);
+      toast.error('Impossible de charger les rendez-vous');
+    }
+  }, []);
 
   useEffect(() => {
     fetchAppointments();
@@ -86,44 +118,6 @@ export default function AgendaPage() {
     setTimeout(() => {
       setCurrentView(newView);
     }, 0);
-  };
-
-  const fetchAppointments = async () => {
-    try {
-      const { data: appointments, error } = await supabase
-        .from('appointments')
-        .select(`
-          *,
-          patient:patients (
-            id,
-            nom,
-            prenom
-          )
-        `);
-
-      if (error) throw error;
-
-      const formattedEvents: EventType[] = appointments.map((apt: any) => ({
-        id: apt.id.toString(),
-        title: `${apt.patient.nom} ${apt.patient.prenom} - ${apt.motif}`,
-        start: new Date(apt.date_heure),
-        end: new Date(new Date(apt.date_heure).getTime() + parseDuration(apt.duree)),
-        backgroundColor: getStatusColor(apt.statut),
-        borderColor: getStatusColor(apt.statut),
-        textColor: '#ffffff',
-        extendedProps: {
-          patient_id: apt.patient_id,
-          patient_name: `${apt.patient.nom} ${apt.patient.prenom}`,
-          motif: apt.motif,
-          status: apt.statut
-        }
-      }));
-
-      setEvents(formattedEvents);
-    } catch (error) {
-      console.error('Erreur lors du chargement des rendez-vous:', error);
-      toast.error('Impossible de charger les rendez-vous');
-    }
   };
 
   const parseDuration = (duration: string): number => {

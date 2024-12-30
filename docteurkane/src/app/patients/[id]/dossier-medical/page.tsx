@@ -1,27 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { 
-  DentalSchema, 
-  Treatment, 
-  TreatmentPlan, 
-  ClinicalNote, 
-  Payment, 
-  MedicalImage 
-} from '@/types';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { 
-  FiGrid, 
-  FiCalendar, 
-  FiList, 
-  FiFileText, 
-  FiDollarSign, 
-  FiImage 
-} from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 
 interface Tab {
@@ -39,19 +20,14 @@ const tabs: Tab[] = [
   { id: 'images', title: 'Imagerie médicale', icon: <FiImage className="w-5 h-5" /> },
 ];
 
-export default function MedicalRecord({ params }: { params: { id: string } }) {
-  const router = useRouter();
+export default function DossierMedical() {
+  const params = useParams();
   const [activeTab, setActiveTab] = useState('schema');
   const [loading, setLoading] = useState(true);
   const [patient, setPatient] = useState<any>(null);
 
-  useEffect(() => {
-    fetchPatientData();
-  }, [params.id, fetchPatientData]);
-
-  const fetchPatientData = async () => {
+  const fetchPatientData = useCallback(async () => {
     try {
-      // Fetch patient details
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
         .select('*')
@@ -60,38 +36,17 @@ export default function MedicalRecord({ params }: { params: { id: string } }) {
 
       if (patientError) throw patientError;
       setPatient(patientData);
-
-      // Fetch all medical record data
-      const [
-        dentalSchemaRes,
-        treatmentsRes,
-        treatmentPlanRes,
-        clinicalNotesRes,
-        paymentsRes,
-        medicalImagesRes
-      ] = await Promise.all([
-        supabase.from('dental_schema').select('*').eq('patient_id', params.id),
-        supabase.from('treatments').select('*').eq('patient_id', params.id),
-        supabase.from('treatment_plans').select('*').eq('patient_id', params.id),
-        supabase.from('clinical_notes').select('*').eq('patient_id', params.id),
-        supabase.from('payments').select('*').eq('patient_id', params.id),
-        supabase.from('medical_images').select('*').eq('patient_id', params.id)
-      ]);
-
-      if (dentalSchemaRes.error) throw dentalSchemaRes.error;
-      if (treatmentsRes.error) throw treatmentsRes.error;
-      if (treatmentPlanRes.error) throw treatmentPlanRes.error;
-      if (clinicalNotesRes.error) throw clinicalNotesRes.error;
-      if (paymentsRes.error) throw paymentsRes.error;
-      if (medicalImagesRes.error) throw medicalImagesRes.error;
-
+      setLoading(false);
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
       toast.error('Impossible de charger les données du dossier médical');
-    } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    fetchPatientData();
+  }, [fetchPatientData]);
 
   const renderContent = () => {
     switch (activeTab) {
