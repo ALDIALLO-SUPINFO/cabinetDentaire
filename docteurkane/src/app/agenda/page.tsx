@@ -6,7 +6,6 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { Appointment, Patient } from '@/types';
 import { toast } from 'react-hot-toast';
@@ -34,7 +33,6 @@ export default function AgendaPage() {
   const router = useRouter();
   const calendarRef = useRef<any>(null);
   const [events, setEvents] = useState<EventType[]>([]);
-  const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState<'timeGridDay' | 'timeGridThreeDay' | 'timeGridWeek'>('timeGridDay');
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [showEventModal, setShowEventModal] = useState(false);
@@ -126,8 +124,6 @@ export default function AgendaPage() {
     } catch (error) {
       console.error('Erreur lors du chargement des rendez-vous:', error);
       toast.error('Impossible de charger les rendez-vous');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -234,9 +230,7 @@ export default function AgendaPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8">
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-8"
         >
           {/* Header */}
@@ -356,9 +350,7 @@ export default function AgendaPage() {
           {/* Modal de détails du rendez-vous */}
           {showEventModal && selectedEvent && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
+              <div
                 className="bg-white rounded-xl shadow-xl p-6 max-w-lg w-full mx-4"
               >
                 <h2 className="text-2xl font-bold mb-4">Détails du rendez-vous</h2>
@@ -425,10 +417,10 @@ export default function AgendaPage() {
                     Fermer
                   </button>
                 </div>
-              </motion.div>
+              </div>
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
     </div>
   );

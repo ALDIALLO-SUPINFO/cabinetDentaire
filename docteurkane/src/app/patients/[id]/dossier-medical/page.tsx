@@ -53,7 +53,7 @@ export default function MedicalRecord({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     fetchPatientData();
-  }, []);
+  }, [params.id]);
 
   const fetchPatientData = async () => {
     try {

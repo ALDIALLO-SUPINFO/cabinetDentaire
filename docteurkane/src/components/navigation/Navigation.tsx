@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { FiHome, FiCalendar, FiUsers, FiSettings, FiFolder } from 'react-icons/fi';
 
 const links = [
