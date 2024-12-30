@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { PatientDetails } from './components/PatientDetails';
+import { PostgrestError } from '@supabase/supabase-js';
 
 interface PatientData {
   id: string;
@@ -20,6 +21,13 @@ interface PageProps {
   searchParams?: { [key: string]: string | string[] | undefined };
 }
 
+class PatientError extends Error {
+  constructor(message: string, public cause?: PostgrestError) {
+    super(message);
+    this.name = 'PatientError';
+  }
+}
+
 async function getPatientData(id: string) {
   const { data, error } = await supabase
     .from('patients')
@@ -28,7 +36,7 @@ async function getPatientData(id: string) {
     .single();
 
   if (error) {
-    throw new Error(`Impossible de charger les données du patient: ${error.message}`);
+    throw new PatientError('Impossible de charger les données du patient', error);
   }
 
   return data;
@@ -39,8 +47,20 @@ export default async function PatientPage({ params }: PageProps) {
   
   try {
     patient = await getPatientData(params.id);
-  } catch (error: any) {
-    return <div>Erreur: {error.message}</div>;
+  } catch (error) {
+    if (error instanceof PatientError) {
+      return (
+        <div className="text-red-600">
+          {error.message}
+          {error.cause && (
+            <div className="text-sm text-red-500">
+              {error.cause.message}
+            </div>
+          )}
+        </div>
+      );
+    }
+    return <div className="text-red-600">Une erreur inattendue est survenue</div>;
   }
 
   if (!patient) {
