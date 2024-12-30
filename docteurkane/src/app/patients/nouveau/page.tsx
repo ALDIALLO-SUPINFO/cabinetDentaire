@@ -228,7 +228,7 @@ export default function NewPatient() {
             className="space-y-6"
           >
             <div>
-              <OptionalLabel>Numéro d&apos;assurance sociale</OptionalLabel>
+              <OptionalLabel>Numéro d&#39;assurance sociale</OptionalLabel>
               <input
                 type="text"
                 name="numero_secu"

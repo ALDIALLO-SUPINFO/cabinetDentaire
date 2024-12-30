@@ -9,7 +9,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 import { FiPlus, FiCalendar, FiClock, FiUser } from 'react-icons/fi';
-import { format, addDays } from 'date-fns';
+import { format, addDays, differenceInMinutes } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 interface EventType {
@@ -35,6 +35,22 @@ interface AppointmentType {
     id: string;
     nom: string;
     prenom: string;
+  };
+}
+
+interface EventDropInfo {
+  event: {
+    id: string;
+    start: Date;
+    end: Date;
+  };
+}
+
+interface EventResizeInfo {
+  event: {
+    id: string;
+    start: Date;
+    end: Date;
   };
 }
 
@@ -176,14 +192,13 @@ export default function AgendaPage() {
     }
   }, [visibleRange, isInitialLoad]);
 
-  const handleEventDrop = async (info: any) => {
+  const handleEventDrop = async (info: EventDropInfo) => {
     try {
       const { event } = info;
       const { error } = await supabase
         .from('appointments')
         .update({
           date_heure: event.start.toISOString(),
-          updated_at: new Date().toISOString()
         })
         .eq('id', event.id);
 
@@ -192,20 +207,20 @@ export default function AgendaPage() {
     } catch (error) {
       console.error('Erreur lors du déplacement du rendez-vous:', error);
       toast.error('Impossible de déplacer le rendez-vous');
-      info.revert();
     }
   };
 
-  const handleEventResize = async (info: any) => {
+  const handleEventResize = async (info: EventResizeInfo) => {
     try {
       const { event } = info;
-      const duration = (event.end.getTime() - event.start.getTime()) / (60 * 1000);
-      
       const { error } = await supabase
         .from('appointments')
         .update({
-          duree: `${duration} minutes`,
-          updated_at: new Date().toISOString()
+          date_heure: event.start.toISOString(),
+          duree: format(
+            differenceInMinutes(event.end, event.start),
+            "'minutes'"
+          ),
         })
         .eq('id', event.id);
 
@@ -213,8 +228,7 @@ export default function AgendaPage() {
       toast.success('Durée du rendez-vous modifiée avec succès');
     } catch (error) {
       console.error('Erreur lors de la modification de la durée:', error);
-      toast.error('Impossible de modifier la durée');
-      info.revert();
+      toast.error('Impossible de modifier la durée du rendez-vous');
     }
   };
 

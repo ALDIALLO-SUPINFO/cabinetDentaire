@@ -80,7 +80,7 @@ export default function DossierMedical() {
       case 'paiements':
         return <div>Paiements à implémenter</div>;
       case 'images':
-        return <div>Galerie d'imagerie médicale à implémenter</div>;
+        return <div>Galerie d&apos;imagerie médicale à implémenter</div>;
       default:
         return null;
     }
