@@ -2,21 +2,40 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
+import { 
+  FiGrid, 
+  FiCalendar, 
+  FiList, 
+  FiFileText, 
+  FiDollarSign, 
+  FiImage 
+} from 'react-icons/fi';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+
+interface Patient {
+  id: string;
+  nom: string;
+  prenom: string;
+  date_naissance: string;
+  numero_secu: string;
+}
 
 interface Tab {
   id: string;
   title: string;
-  icon: React.ReactNode;
+  icon: JSX.Element;
 }
 
 const tabs: Tab[] = [
   { id: 'schema', title: 'Schéma dentaire', icon: <FiGrid className="w-5 h-5" /> },
-  { id: 'soins', title: 'Historique des soins', icon: <FiCalendar className="w-5 h-5" /> },
+  { id: 'traitements', title: 'Traitements', icon: <FiCalendar className="w-5 h-5" /> },
   { id: 'plan', title: 'Plan de traitement', icon: <FiList className="w-5 h-5" /> },
   { id: 'notes', title: 'Notes cliniques', icon: <FiFileText className="w-5 h-5" /> },
-  { id: 'paiements', title: 'Suivi des paiements', icon: <FiDollarSign className="w-5 h-5" /> },
+  { id: 'paiements', title: 'Paiements', icon: <FiDollarSign className="w-5 h-5" /> },
   { id: 'images', title: 'Imagerie médicale', icon: <FiImage className="w-5 h-5" /> },
 ];
 
@@ -24,7 +43,7 @@ export default function DossierMedical() {
   const params = useParams();
   const [activeTab, setActiveTab] = useState('schema');
   const [loading, setLoading] = useState(true);
-  const [patient, setPatient] = useState<any>(null);
+  const [patient, setPatient] = useState<Patient | null>(null);
 
   const fetchPatientData = useCallback(async () => {
     try {
@@ -52,14 +71,14 @@ export default function DossierMedical() {
     switch (activeTab) {
       case 'schema':
         return <div>Schéma dentaire interactif à implémenter</div>;
-      case 'soins':
-        return <div>Historique des soins à implémenter</div>;
+      case 'traitements':
+        return <div>Traitements à implémenter</div>;
       case 'plan':
         return <div>Plan de traitement à implémenter</div>;
       case 'notes':
         return <div>Notes cliniques à implémenter</div>;
       case 'paiements':
-        return <div>Suivi des paiements à implémenter</div>;
+        return <div>Paiements à implémenter</div>;
       case 'images':
         return <div>Galerie d'imagerie médicale à implémenter</div>;
       default:

@@ -17,23 +17,33 @@ interface EventType {
   title: string;
   start: Date;
   end: Date;
-  backgroundColor: string;
-  borderColor: string;
-  textColor: string;
-  extendedProps: {
-    patient_id: number;
+  backgroundColor?: string;
+  borderColor?: string;
+  textColor?: string;
+  extendedProps?: {
+    patient_id: string;
     patient_name: string;
     motif: string;
     status: string;
   };
 }
 
+interface AppointmentType {
+  id: string;
+  date_heure: string;
+  patient: {
+    id: string;
+    nom: string;
+    prenom: string;
+  };
+}
+
 export default function AgendaPage() {
   const router = useRouter();
-  const calendarRef = useRef<any>(null);
+  const calendarRef = useRef<FullCalendar>(null);
   const [events, setEvents] = useState<EventType[]>([]);
   const [currentView, setCurrentView] = useState<'timeGridDay' | 'timeGridThreeDay' | 'timeGridWeek'>('timeGridDay');
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
   const [visibleRange, setVisibleRange] = useState({
     start: new Date(),
@@ -55,10 +65,10 @@ export default function AgendaPage() {
 
       if (error) throw error;
 
-      const formattedEvents = data.map((appointment: any) => ({
+      const formattedEvents = data.map((appointment: AppointmentType) => ({
         id: appointment.id,
         title: `${appointment.patient.nom} ${appointment.patient.prenom}`,
-        start: appointment.date_heure,
+        start: new Date(appointment.date_heure),
         end: addDays(new Date(appointment.date_heure), 1),
         extendedProps: {
           ...appointment
@@ -118,18 +128,6 @@ export default function AgendaPage() {
     setTimeout(() => {
       setCurrentView(newView);
     }, 0);
-  };
-
-  const parseDuration = (duration: string): number => {
-    const matches = duration.match(/(\d+)\s*(minutes?|hours?)/i);
-    if (!matches) return 30 * 60 * 1000; // default 30 minutes
-    
-    const value = parseInt(matches[1]);
-    const unit = matches[2].toLowerCase();
-    
-    return unit.startsWith('hour') 
-      ? value * 60 * 60 * 1000 
-      : value * 60 * 1000;
   };
 
   const getStatusColor = (status: string): string => {
